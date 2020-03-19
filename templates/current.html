@@ -1,0 +1,22 @@
+<head>
+	<title>Lunar Knights Dashboard</title>
+
+	<script src="static/thirdparty/react.development.js"></script>
+	<script src="static/thirdparty/react-dom.development.js"></script>
+	<script src="static/thirdparty/Chart.js"></script>
+	<script src="static/thirdparty/socket.io.js"></script>
+	<script> const e = React.createElement, c = React.Component; </script>
+	<script src = "static/current.js"></script>
+</head>
+
+<body> 
+	<h1>Lunar Knights Raspberry Pi</h1>
+	<div id="root"></div>
+	<script>run()</script>
+	<script>
+		let socket = io();
+		socket.on('amps', data => {
+			addCurrent(data)
+		});
+	</script>
+</body>

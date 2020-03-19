@@ -1,0 +1,54 @@
+<head>
+	<title>Lunar Knights Dashboard</title>
+
+	<script src="static/thirdparty/react.development.js"></script>
+	<script src="static/thirdparty/react-dom.development.js"></script>
+	<script src="static/thirdparty/socket.io.js"></script>
+	<script> const e = React.createElement, c = React.Component; </script>
+	<script src = "static/gamepad.js"></script>
+</head>
+
+<body> 
+	<h1>Lunar Knights Raspberry Pi</h1>
+	<div id="root"></div>
+	<script>run()</script>
+	<script>
+		let socket = io();
+		socket.on('data', data => {
+			const dict = JSON.parse(data)
+			Object.keys(dict).forEach(key => {
+				let elm = document.getElementById(key)
+				if (elm)
+				{
+					if (dict[key] === '1')
+					{
+						elm.setAttribute('stroke-width', '5px');
+						elm.setAttribute('stroke', '#FC2DE3');
+					}
+					else
+					{
+						elm.setAttribute('stroke-width', '1px');
+						elm.setAttribute('stroke', '#141414');
+					}
+					return;
+				}
+				else if (key > 3)
+				{
+					return;
+				}
+
+				elm = document.getElementById(key < 2 ? 'jl' : 'jr')
+
+				let outer = elm.childNodes[0];
+				let inner = elm.childNodes[1];
+
+				let cx = outer.getAttribute('cx');
+				let cy = outer.getAttribute('cy');
+				let r = outer.getAttribute('r') * 0.75;
+
+				if (key%2 == 0) inner.setAttribute('cx', cx - (r * dict[key]));
+				if (key%2 == 1) inner.setAttribute('cy', cy - (r * dict[key]));
+			})
+		});
+	</script>
+</body>

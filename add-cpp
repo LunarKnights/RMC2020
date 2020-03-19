@@ -1,0 +1,75 @@
+#!/usr/bin/python3
+
+import npyscreen
+import os
+from pathlib import Path
+from datetime import date
+
+newline = '\n'
+
+package_files = ['general', 'hardware', 'subsystems', 'comm']
+
+class ExitButton(npyscreen.ButtonPress):
+	def whenPressed(self): quit()
+
+class lkForm(npyscreen.Form):
+	def afterEditing(self):
+		self.parentApp.setNextForm(None)
+
+	def create(self):
+		self.parentApp.name = self.add(npyscreen.TitleText, name='Name')
+		self.parentApp.pack = self.add(npyscreen.TitleSelectOne, scroll_exit=True, max_height=5, name='Directory', values=package_files)
+		self.parentApp.file = self.add(npyscreen.TitleText, name='Filename')
+		self.parentApp.desc = self.add(npyscreen.TitleText, name='Description')
+		self.exitButton = self.add(ExitButton, name="Exit", relx=-12, rely=-3)
+
+class MyApplication(npyscreen.NPSAppManaged):
+	name = pack = file = desc = None
+	def onStart(self):
+		self.addForm('MAIN', lkForm, name='LK Add File')
+
+if __name__ == '__main__':
+	app = MyApplication()
+	app.run()
+
+	filename = app.file.value
+	name = app.name.value
+	desc = app.desc.value or ('Source file for ' + filename)
+	pack = package_files[app.pack.value[0]] + '/'
+	if pack == 'general/': pack = ''
+
+	include_dir = 'include/LK/' + pack
+	src_dir = 'src/' + pack
+	Path(include_dir).mkdir(parents=True, exist_ok=True)
+	Path(src_dir).mkdir(parents=True, exist_ok=True)
+
+	header = '_LK_' + filename.upper() + '_H'
+
+	with open(include_dir + filename + '.h', 'w') as f:
+		f.write('#ifndef ' + header + newline)
+		f.write('#define ' + header + newline)
+		f.write('\n\n\n#endif\n')
+
+	os.system('nano ' + include_dir + filename + '.h')
+
+	header_file = open(include_dir + filename + '.h', 'r')
+	src_file = open(src_dir + filename + '.cpp', 'w')
+
+	src_file.write('/**\n')
+	src_file.write(' * Lunar Knights\n')
+	src_file.write(' *\n')
+	src_file.write(' * ' + name + newline)
+	src_file.write(' * ' + date.today().strftime("%B %d, %Y") + newline)
+	src_file.write(' *\n')
+	src_file.write(' * ' + desc +' \n')
+	src_file.write(' *\n')
+	src_file.write(' */\n\n')
+
+	for line in header_file:
+		if not line.startswith('#') and line != newline:
+			src_file.write(line.replace(';', '\n{\n\n}\n'))
+
+	header_file.close()
+	src_file.close()
+
+	os.system('nano ' + src_dir + filename + '.cpp')
